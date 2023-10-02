@@ -14,7 +14,8 @@
 
 
 
-
+NASMFLAGS = nasm -felf64 -o
+LD = ld -o
 # ЗАДАНИЕ 3.5
 .PHONY: TASK3_5
 
