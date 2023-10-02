@@ -39,6 +39,7 @@ out/added/Battleground:  out/added/pokemon
 
 project.jar: out/added/Battleground Manifest.MF
 	jar $(JARFALGS) $@ Manifest.MF out/added/*
+	make clean
 
 
 # javac -d out -cp Pokemon.jar  added/moves/*.java 
