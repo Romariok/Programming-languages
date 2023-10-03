@@ -1,3 +1,0 @@
-Manifest-Version: 1.0
-Main-Class: added.Battleground
-Class-Path: Pokemon.jar
