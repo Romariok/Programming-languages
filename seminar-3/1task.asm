@@ -1,13 +1,14 @@
 %macro concat 4
-    %4_label: db %1, ',', ' '
-%endmacro
+    %4: db %1, ',', ' ', %2, ',', ' ', %3, 0
 
+%endmacro
+section .data
+concat "hello", "another", "world", newSTR
 section .text
 
 global _start
 _start:
-   concat 'hello', 'another', 'world', newSTR
-   mov rdi, newSTR_label
+   mov rdi, newSTR
    call print_string
    mov rax, 60
    mov rdi, 0
