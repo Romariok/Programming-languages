@@ -1,7 +1,7 @@
 .PHONY = clean
 .PHONY = all
 
-JARFALGS=cvfm
+JARFLAGS=cvfm
 CP=-cp Pokemon.jar
 CPext = -cp out:Pokemon.jar
 JAVA_MOVES_FILES = $(wildcard src/added/moves/*.java)
@@ -38,8 +38,9 @@ out/added/Battleground:  out/added/pokemon
 
 
 project.jar: out/added/Battleground Manifest.MF
-	jar $(JARFALGS) $@ Manifest.MF out/added/*
+	jar $(JARFLAGS) $@ Manifest.MF out/added/*
 	make clean
+
 
 
 # javac -d out -cp Pokemon.jar  added/moves/*.java 
