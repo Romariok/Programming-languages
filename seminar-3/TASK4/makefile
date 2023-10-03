@@ -1,6 +1,3 @@
-.PHONY = clean
-.PHONY = all
-
 JARFLAGS=cvfm
 CP=-cp Pokemon.jar
 CPext = -cp out:Pokemon.jar
@@ -51,3 +48,4 @@ project.jar: out/added/Battleground Manifest.MF
 # jar cvfm project.jar Manifest.MF out/added/* 
 
 
+.PHONY: clean all

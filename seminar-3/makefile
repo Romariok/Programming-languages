@@ -17,8 +17,9 @@
 NASMFLAGS = nasm -felf64 -o
 LD = ld -o
 # ЗАДАНИЕ 3.5
-.PHONY: TASK3_5
 
+clean:
+	rm -f *.o
 %.o: %.asm
 	$(NASMFLAGS) $@ $<
 
@@ -30,6 +31,8 @@ main.o : main.asm lib1.o
 
 TASK3_5: lib.o lib1.o main.o
 	$(LD) $@ $^
+	make clean
 
+.PHONY: TASK3_5 clean
 
 
