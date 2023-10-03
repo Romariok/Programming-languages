@@ -1,9 +1,15 @@
-%macro concat 4
-    %4: db %1, ',', ' ', %2, ',', ' ', %3, 0
-
+%macro concat  1-*
+%1: 
+%rotate 1
+%rep %0-2
+db %1, ", "
+%rotate 1
+%endrep
+db %1, 0
+%2_end:
 %endmacro
 section .data
-concat "hello", "another", "world", newSTR
+concat newSTR, "hello", "another", "world"
 section .text
 
 global _start
