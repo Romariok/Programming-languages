@@ -69,7 +69,7 @@ print_file:
 
     syscall
 
-
+; save file descriptor
     mov rbx, rax
     
 ;Calling fstat to get file information
@@ -78,15 +78,6 @@ print_file:
     mov rsi, rsp
     mov rax, SYS_FSTAT 
     syscall
-
-;Getting file size from stack and print it
-    mov rdi, [rsp+OFFSET_ST_SIZE]
-    add rsp, SIZEOF_STAT
-    mov rsi, SIZE_OFFT
-    call print_substring
-
-
-    sub rsp, SIZEOF_STAT
 
 
 ;Mapping file
@@ -99,9 +90,10 @@ print_file:
     mov rax, SYS_MMAP
     syscall
 
-;Print mapped file
+;Print mapped file with file size
     mov rdi, rax
-    call print_string
+    mov rsi, [rsp+OFFSET_ST_SIZE]
+    call print_substring
 
 ; delete mapping
     mov rax, SYS_MUNMAP
@@ -117,7 +109,6 @@ print_file:
     syscall
 
     call exit
-
 
 
 
