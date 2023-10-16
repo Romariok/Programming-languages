@@ -112,20 +112,3 @@ print_file:
 
 
 
-; strace ./hello_mmap > /dev/null 
-
-
-; Hello, mmap!
-; execve("./hello_mmap", ["./hello_mmap"], 0x7ffdb1f83320 /* 37 vars */) = 0
-; open("hello.txt", O_RDONLY)             = 3
-; fstat(3, {st_mode=S_IFREG|0644, st_size=13, ...}) = 0
-; write(1, 0xd, 8)                        = 8
-; mmap(NULL, 13, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f2e86cad000
-; write(1, "Hello, mmap!\n", 13)          = 13
-; munmap(NULL, 13)                        = 0
-; close(3)                                = 0
-; exit(0)                                 = ?
-; +++ exited with 0 +++
-
-
-
