@@ -10,8 +10,7 @@ hello: hello.o hello_mmap.o
 	$(LD) -o $@ $^
 
 target : hello 
-	./hello haski.txt
-
+	./hello hello.txt
 
 hello.o: hello.c 
 	$(CC) -c $(CFLAGS) -o $@ $<

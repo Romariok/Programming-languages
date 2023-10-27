@@ -70,7 +70,7 @@ _start:
     syscall
 
 ; save file descriptor
-    mov rbx, rax
+    mov r13, rax
     
 ;Calling fstat to get file information
     mov rdi, rax
@@ -85,7 +85,7 @@ _start:
     mov rsi, [rsp+OFFSET_ST_SIZE]
     mov rdx, PROT_READ
     mov r10, MAP_PRIVATE
-    mov r8, rbx
+    mov r8, r13
     mov r9, 0
     mov rax, SYS_MMAP
     syscall
@@ -104,7 +104,7 @@ _start:
 
 ; close file
     mov rax, SYS_CLOSE
-    mov rdi, rbx
+    mov rdi, r13
 
     syscall
 

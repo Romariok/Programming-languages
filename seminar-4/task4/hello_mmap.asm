@@ -62,6 +62,7 @@ print_substring:
 
 ; rdi - file name
 print_file:
+    push r13
     ; Вызовите open и откройте fname в режиме read only.
     mov  rax, SYS_OPEN
     mov  rsi, O_RDONLY    ; Open file read only
@@ -70,7 +71,7 @@ print_file:
     syscall
 
 ; save file descriptor
-    mov rbx, rax
+    mov r13, rax
     
 ;Calling fstat to get file information
     mov rdi, rax
@@ -85,7 +86,7 @@ print_file:
     mov rsi, [rsp+OFFSET_ST_SIZE]
     mov rdx, PROT_READ
     mov r10, MAP_PRIVATE
-    mov r8, rbx
+    mov r8, r13
     mov r9, 0
     mov rax, SYS_MMAP
     syscall
@@ -104,11 +105,11 @@ print_file:
 
 ; close file
     mov rax, SYS_CLOSE
-    mov rdi, rbx
+    mov rdi, r13
 
     syscall
-
-    call exit
+    pop r13
+    ret
 
 
 
