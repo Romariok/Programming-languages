@@ -1,0 +1,524 @@
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+INCLUDE: "../common/org-header.org"
+#+TITLE: Семинар 5: Аспекты языка C, препроцессор языка C, _Generic
+
+
+* Аспекты языка
+
+  В каждом языке программирования есть три аспекта: синтаксис, семантика и прагматика.
+
+** Синтаксис
+
+   Синтаксис определяет, какие программы на этом языке считаются "правильно сформированными".
+
+    Примеры синтаксически-неправильных программ:
+#+begin_src c
+int x = "hello" ; // несоответствие типов 
+
+int x = y + 23 ; // если переменная y не объявлена
+
+int int = 4;   // после int ожидается имя переменной,
+// не может совпадать с ключевым словом int
+#+end_src
+
+** Семантика
+
+   Семантика определяет значение конструкций языка.
+   Описывать её можно на естественном языке (например, в стандарте языка C она описана на английском) или на языке формальной логики.
+   Семантика наделяет каждую конструкцию каким-то поведением в зависимости от контекста, например, сопоставляет операции "*" смысл "умножить левую часть на правую, если звёздочка между двумя выражениями", или смысл "слева от звёздочки --- тип-указатель" в другом контексте.
+   
+   Бывает, что у какой-то конструкции нет смысла, хотя программа и синтаксически-корректна.
+   Нет смысла значит что стандарт языка или явно отказался от того, чтобы определять, что же произойдёт, или просто обошёл этот момент стороной, и теперь нам непонятно.
+  Такая ситуация называется /неопределённым поведением/.
+ 
+  Примеры программ, в которых нет семантики:
+
+#+begin_src c
+int y = 0;
+int x = 1 / y; // деление на ноль
+
+int z = * (NULL); // обращение по указателю NULL неопределено.
+
+
+int k = x++ + ++x; // неизвестно, какая операция выполнится раньше:
+// x++ или ++x, отсюда и результат может быть разный.
+
+#+end_src
+
+** Прагматика
+
+   Прагматика в языках программирования --- то, как меняется семантика при трансляции в целевую архитектуру.
+   Например, в программе на C есть неопределённое поведение, а в программе на ассемблере --- нет.
+   Значит, после трансляции неопределённое поведение доопределится --- а как?
+   Некоторые дополнительные директивы для компилятора и конструкции языка нужны, чтобы учитывать особенности вычислительной машины, реализации, для повышения эффективности
+
+   Примеры прагматических аспектов:
+
+   - Выравнивание в памяти
+   - Упаковка полей структур (как поля расположены в памяти, есть ли между ними отступы?)
+   - Выбор способа трансляции формул с плавающей точкой.
+     
+Например, при компиляции =gcc= может принимать опцию =-ffast-math=, которая:
+
+- Выключает строгую совместимость со стандартом IEEE
+- Сокращает количество записей в переменную =errno=.
+- Вносит предположение что в формулах не встречается NaN, ноль или бесконечность.
+- и включает ещё некоторые оптимизации.
+    
+*Вопрос* скомпилируйте следующий файл и посмотрите содержимое секции =.data= с помощью =objdump=. По какому адресу начинается переменная =x=? Попробуйте убрать =_Alignas(128)= и объясните эффект. 
+
+#+begin_src c
+/* alignas.c */
+
+#include <inttypes.h>
+
+_Alignas(128) int64_t x = -1;
+
+int main() {
+  return 0;
+}
+#+end_src
+
+* Синтаксис
+
+  Мы привыкли смотреть на программы как на текст.
+  Однако текстовое представление имеет ряд недостатков.
+
+  Прежде всего, текст может неоднозначно трактоваться.
+
+  Как думаете, что выведет эта программа если =x = -4=?
+
+  #+begin_src c
+if (x > 0)
+  if (y > 0) {
+    print("yes");
+  }
+  else {
+    print("no");
+  }
+#+end_src
+
+
+А если посмотреть на неё так?
+
+
+  #+begin_src c
+if (x > 0)
+  if (y > 0) {
+    print("yes");
+  }
+else {
+  print("no");
+}
+#+end_src
+
+
+*Вопрос* напишите минимальный пример с таким кодом, скомпилируйте его со строгим соответствием стандарту C17 (=-std=c17 -pedantic -Wall=).  Что выведет компилятор? Объясните сообщение.
+
+
+Как мы видим из этого примера, в плохо спроектированных языках текстовое представление бывает неоднозначным.
+
+Более того, многие элементы программы не несут никакой операционной нагрузки (комментарии, ключевые слова).
+Некоторые очевидно одинаковые программы представляются разным текстом:
+
+#+begin_src c
+int x = a * b + c;
+int x = (a * b) + c;
+int x = ((a * b) + c);
+int x = (((a * b) + c));
+// скобки нужны только чтобы правильно разобрать выражение
+// но здесь они избыточны
+// этот комментарий тоже ни на что не влияет,
+// хотя в тексте программы присутствует.
+#+end_src
+
+
+О программе удобнее думать не как о её текстовом представлении.
+Текст это лишь проекция её структуры на экран; на самом деле лучшее представление о её структуре даёт так называемое /дерево абстрактного синтаксиса/, abstract syntax tree, AST.
+  
+  В нём каждой конструкции языка сопоставляется тип вершин дерева, например:
+
+#+begin_src c
+y*z
+#+end_src
+
+[[./img/ast0.svg]]
+
+#+begin_src c
+x+y*z
+#+end_src
+
+[[./img/ast1.svg]]
+
+#+begin_src c
+if (x+y*z) {
+  print("yes");
+  }
+else {
+  print("no");
+  }
+#+end_src
+
+[[./img/ast2.svg]]
+
+
+Смысл такого представления программы в том, что оно чётко и недвусмысленно определяет её структуру и не зависит от форматирования (пробелы, переносы строк и т.д.).
+Кроме того, оно не зависит и от точных названий ключевых слов.
+Действительно, станет ли язык C другим, если всё, что мы поменяем --- заменим ключевое слово =while= на =whiiile= с тем же смыслом?
+
+
+На таком древовидном представлении программы легче говорить про её семантику.
+Значение языковых конструкций задаётся именно для вершин AST.
+Где это встречается:
+
+- При разработке компиляторов или интерпретаторов практически первое, что происходит с программой --- её преобразование в AST.
+Также этим занимаются IDE и текстовые редакторы.
+- Форматы хранения данных типа JSON тоже представимы как AST.
+- Разметки текста (Markdown, Org...)
+- Вообще любые структурированные текстовые форматы (файлы конфигураций и т.д.)
+- В документах описывающих языки программирования (стандарты языков).
+
+Например, вот описание конструкции =_Alignas= из стандарта C. Как видите, в нём используется =type-name= и =constant-expression= --- типы узлов AST-дерева кода (немного упрощая).
+
+[[./img/ast_alignas.jpg]]
+
+- Знание AST бывает полезным при попытке понять сообщения об ошибках, выдающиеся компилятором (см. первое задание :)
+
+
+Теперь изучим AST простой программы на Java с помощью 
+
+[[https://astexplorer.net/]]
+
+#+begin_src java
+public class Program {
+    public static void main(String[] args) {
+        int x = 100;
+        if (x > 0) {
+            System.out.println("Greater than zero"); 
+        }
+        else {
+            System.out.println("Less than or equal to zero"); 
+        }
+    }
+}
+#+end_src
+
+
+*Вопрос* найдите в AST для примера выше имя класса. Какие поля хранятся в узле этого дерева? Как вы думаете, зачем?
+
+*Задание 0.5* найдите в AST для примера выше конструкцию if. Добавьте код так, чтобы повторить ситуацию с вложенным в if предложением if-else из первого примера. Нарисуйте примерный вид AST для него.
+
+
+* Макросы в C
+
+  В C макропроцессор достаточно прост в сравнении с =nasm=.
+  Напоминаем, что с помощью ключа =-E= в gcc/clang можно посмотреть результат препроцессинга файла с исходных кодом не запуская его компиляцию.
+  
+  В вашем распоряжении несколько конструкций текстовой замены:
+
+  #+BEGIN_SRC C
+// текстовая замена
+#define x 42  
+// текстовая замена с параметрами
+#define add_42(y) y + 42
+
+  #+END_SRC
+
+  *Вопрос* Что выведется в =stdout=? Если это неожиданный результат, как переписать =dbl= чтобы избавиться от нежелательного и неожиданного поведения?
+  
+  #+BEGIN_SRC C
+#define dbl(y) y * 2
+
+...
+printf("%d", dbl(3+3));
+  #+END_SRC
+
+  Многострочные макросы реализуются с использованием экранирования перевода строки символом =\=, напрмер:
+
+  #+BEGIN_SRC C
+// обмен значений двух целых чисел одного типа
+#define swap(a, b) a ^= b, \
+                   b ^= a, \
+                   a ^= b
+  #+END_SRC
+
+  Есть также набор для организации условий
+  #+BEGIN_SRC C
+#ifdef X
+// этот текст будет включен если X определён с помощью #define
+#endif
+
+#ifndef X
+// этот текст будет включен если X не был определён с помощью #define
+#endif
+  #+END_SRC
+
+** Превращение в строки
+   Интересна возможность обрамлять кавычками параметры.
+
+   #+BEGIN_SRC C
+#define print_var(x) printf(#x " is %d", x )
+   #+END_SRC
+
+
+   *Задание 1* Напишите программу которая будет использовать этот макрос для вывода переменной, числа и константы, заданной с использованием макроса. Протестируйте её с помощью ключа =-E= для gcc/clang.
+
+   *Вопрос* Что будет если написать =print_var(42)= ?
+  
+** Склеивание строк
+   Также можно склеивать идентификаторы из нескольких частей:
+
+#+BEGIN_SRC C
+/* int_print.c */
+
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define _print(type, x) type##_print(x)
+
+void int64_t_print(int64_t i) { printf("%" PRId64, i); }
+void double_print(double d) { printf("%lf", d); }
+void newline_print() { puts(""); }
+
+int main() {
+  int64_t x = 42;
+  double  d = 99.99;
+
+  _print(int64_t, x);
+  _print(newline, "");
+  _print(double, d);
+  _print(newline, "");
+
+  return 0;
+}
+#+END_SRC
+
+   *Вопрос* Протестируйте эту программу с помощью ключа =-E= для gcc/clang.
+
+** Использование =generic=
+
+   Начиная с C99 появилась мощная конструкция =_Generic=, которая умеет делать ветвление по типам данных и, в зависимости от типа выражения, подставлять ту или иную строчку.
+   Если в списке типов не нашлось подходящего, то подставляется строчка, помеченная =default=.
+
+#+BEGIN_SRC C
+/* generic_print.c */
+
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void error(const char *s) {
+  fprintf(stderr, "%s", s);
+  abort();
+}
+
+#define _print(type, x) type##_print(x)
+
+// Обратите внимание на обратные слэши в конце каждой строчки кроме последней!
+// Они экранируют переводы строк, позволяя написать макрос во много строчек.
+#define print(x)                                                        \
+  _Generic((x),                                                         \
+           int64_t : int64_t_print(x),                                  \
+           double : double_print(x),                                    \
+           default : error("Unsupported operation"))
+
+void int64_t_print(int64_t i) { printf("%" PRId64, i); }
+void double_print(double d) { printf("%lf", d); }
+void newline_print() { puts(""); }
+
+int main() {
+  int64_t x = 42;
+  double d = 99.99;
+
+  print(x);
+  newline_print();
+  print(d);
+  newline_print();
+  
+  return 0;
+}
+#+END_SRC
+
+   *Вопрос* Протестируйте эту программу с помощью ключа =-E= для gcc/clang. Что раскрывается раньше: =_Generic= или =#define=?
+   
+   
+* Обобщённые структуры данных
+
+  В C нет обобщённых типов. Нельзя напрямую средствами языка описать структуру данных, скажем, связный список, в который можно положить числа любого типа (=int64_t=, =double= и т.д.)
+  
+Для каждого типа данных эта структура будет выглядеть по-разному:
+
+- Для =int64_t=:
+
+#+BEGIN_SRC C
+/* int_list.c */
+
+#include <stdint.h>
+
+struct list_int {
+  int64_t value;
+  struct list_int* next;
+};
+#+END_SRC
+  
+- Для =double=:
+  
+#+BEGIN_SRC C
+/* double_list.c */
+
+#include <stdint.h>
+
+struct list_double {
+  double value;
+  struct list_double* next;
+};
+#+END_SRC
+
+Мы можем написать макрос, который сгенерирует для нас определение:
+
+#+BEGIN_SRC C
+/* generic_list.c */
+
+#include <stdint.h>
+
+#define DEFINE_LIST(type)                                               \
+  struct list_##type {                                                  \
+    type value;                                                         \
+    struct list_##type* next;                                           \
+  };
+
+DEFINE_LIST(int64_t)
+DEFINE_LIST(double)
+#+END_SRC
+
+*Задание 2* Напишите функции добавления элемента *в конец обобщённого списка* и вывода обобщённого списка на экран используя макросы: функции =list_##type##_push= и =list_##type##_print= внутри макроса =DEFINE_LIST=.  Создайте и выведите с их помощью три любых списка разной длины.
+
+*Задание 3* Напишите функции добавления элемента *в конец обобщённого списка* и вывода обобщённого списка на экран используя generic:  макросы =list_push= и =list_print=, которые используют =_Generic=. Создайте и выведите с их помощью три любых списка разной длины.
+
+*Задание 4* Изучим [[./printer.c][простой принтер для AST-дерева]]. Дерево будем задавать прямо в коде с помощью небольшого доменно-специфичного языка, который определим прямо в программе.
+
+Допишите в =main= код, чтобы вывести следующие выражения (можно со скобками):
+
+- 999 + 728
+- 4+2*9
+
+Расширьте этот пример, добавив тип вершин AST для деления и принтер для него.
+Выведите следующее выражение:
+
+- (3+5) * (9 / 7)
+
+#+begin_src c
+/* printer.c */
+
+#include <inttypes.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+
+struct AST {
+  enum AST_type { AST_BINOP, AST_UNOP, AST_LIT } type;
+  union {
+    struct binop {
+      enum binop_type { BIN_PLUS, BIN_MINUS, BIN_MUL } type;
+      struct AST *left, *right;
+    } as_binop;
+    struct unop {
+      enum unop_type { UN_NEG } type;
+      struct AST *operand;
+    } as_unop;
+    struct literal {
+      int64_t value;
+    } as_literal;
+  };
+};
+
+/* DSL */
+static struct AST *newnode(struct AST ast) {
+  struct AST *const node = malloc(sizeof(struct AST));
+  *node = ast;
+  return node;
+}
+
+struct AST _lit(int64_t value) {
+  return (struct AST){AST_LIT, .as_literal = {value}};
+}
+
+struct AST *lit(int64_t value) {
+  return newnode(_lit(value));
+}
+struct AST _unop(enum unop_type type, struct AST *operand) {
+  return (struct AST){AST_UNOP, .as_unop = {type, operand}};
+}
+
+struct AST *unop(enum unop_type type, struct AST *operand) {
+  return newnode(_unop(type, operand));
+}
+
+struct AST _binop(enum binop_type type, struct AST *left, struct AST *right) {
+  return (struct AST){AST_BINOP, .as_binop = {type, left, right}};
+}
+struct AST *binop(enum binop_type type, struct AST *left, struct AST *right) {
+  return newnode(_binop(type, left, right));
+}
+#define DECLARE_BINOP(fun, code)                                               \
+  struct AST *fun(struct AST *left, struct AST *right) {                       \
+    return binop(BIN_##code, left, right);                                     \
+  }
+DECLARE_BINOP(add, PLUS)
+DECLARE_BINOP(mul, MUL)
+DECLARE_BINOP(sub, MINUS)
+
+#undef DECLARE_BINOP
+#define DECLARE_UNOP(fun, code)                                                \
+  struct AST *fun(struct AST *operand) {                                       \
+    return unop(UN_##code, operand);                                           \
+  }
+DECLARE_UNOP(neg, NEG)
+#undef DECLARE_UNOP
+/* printer */
+
+static const char *BINOPS[] = {
+    [BIN_PLUS] = "+", [BIN_MINUS] = "-", [BIN_MUL] = "*"};
+static const char *UNOPS[] = {[UN_NEG] = "-"};
+
+typedef void(printer)(FILE *, struct AST *);
+
+void print(FILE *f, struct AST *ast);
+
+void print_binop(FILE *f, struct AST *ast) {
+  fprintf(f, "(");
+  print(f, ast->as_binop.left);
+  fprintf(f, ")");
+  fprintf(f, "%s", BINOPS[ast->as_binop.type]);
+  fprintf(f, "(");
+  print(f, ast->as_binop.right);
+  fprintf(f, ")");
+}
+void print_unop(FILE *f, struct AST *ast) {
+  fprintf(f, "(%s", UNOPS[ast->as_unop.type]);
+  print(f, ast->as_unop.operand);
+  fprintf(f, ")");
+}
+void print_lit(FILE *f, struct AST *ast) {
+  fprintf(f, "%" PRId64, ast->as_literal.value);
+}
+
+static printer *ast_printers[] = {
+    [AST_BINOP] = print_binop, [AST_UNOP] = print_unop, [AST_LIT] = print_lit};
+
+void print(FILE *f, struct AST *ast) {
+  if (ast)
+    ast_printers[ast->type](f, ast);
+  else
+    fprintf(f, "<NULL>");
+}
+
+int main() {
+  struct AST *ast = NULL;
+  print(stdout, ast);
+  return 0;
+}
+#+end_src
+

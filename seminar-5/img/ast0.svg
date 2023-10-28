@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="28.052124mm"
+   height="22.760458mm"
+   viewBox="0 0 28.052124 22.760458"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="ast0.svg"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:snap-intersection-paths="true"
+     inkscape:object-paths="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-midpoints="true"
+     inkscape:zoom="1.5297165"
+     inkscape:cx="209.51594"
+     inkscape:cy="42.164674"
+     inkscape:window-width="3840"
+     inkscape:window-height="2060"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-5.6869898,-118.6426)">
+    <circle
+       style="fill:none;stroke:#000000;stroke-width:0.434567"
+       id="circle5176"
+       cx="19.713053"
+       cy="122.08533"
+       r="3.2254455" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;stroke-width:0.264583"
+       x="18.486357"
+       y="124.25686"
+       id="text5180"><tspan
+         sodipodi:role="line"
+         id="tspan5178"
+         style="font-size:4.23333px;stroke-width:0.264583"
+         x="18.486357"
+         y="124.25686">*</tspan></text>
+    <circle
+       style="fill:none;stroke:#000000;stroke-width:0.434567"
+       id="circle5476"
+       cx="9.1297188"
+       cy="137.96033"
+       r="3.2254455" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;stroke-width:0.264583"
+       x="7.8094797"
+       y="139.24319"
+       id="text5480"><tspan
+         sodipodi:role="line"
+         id="tspan5478"
+         style="font-size:4.23333px;stroke-width:0.264583"
+         x="7.8094797"
+         y="139.24319">y</tspan></text>
+    <circle
+       style="fill:none;stroke:#000000;stroke-width:0.434567"
+       id="circle5482"
+       cx="30.296385"
+       cy="137.96033"
+       r="3.2254455" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;stroke-width:0.264583"
+       x="29.022917"
+       y="139.33675"
+       id="text5486"><tspan
+         sodipodi:role="line"
+         id="tspan5484"
+         style="font-size:4.23333px;stroke-width:0.264583"
+         x="29.022917"
+         y="139.33675">z</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 17.444749,124.37843 -6.360258,11.01629"
+       id="path5488" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 21.919471,124.43804 6.355818,11.0086"
+       id="path5490" />
+    <circle
+       style="fill:none;stroke:#000000;stroke-width:0.434567"
+       id="circle12209"
+       cx="19.713053"
+       cy="122.08533"
+       r="3.2254455" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;stroke-width:0.264583"
+       x="18.486357"
+       y="124.25686"
+       id="text12213"><tspan
+         sodipodi:role="line"
+         id="tspan12211"
+         style="font-size:4.23333px;stroke-width:0.264583"
+         x="18.486357"
+         y="124.25686">*</tspan></text>
+  </g>
+</svg>
