@@ -1,0 +1,10 @@
+{
+   "cmake.configureOnOpen": false,
+   "files.associations": {
+      "*.kit": "html",
+      "transformation.h": "c",
+      "stdio.h": "c",
+      "image.h": "c",
+      "bmp.h": "c"
+   }
+}
